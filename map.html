@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <title>Portland Food Map</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        #topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #131fc7;
+            font-size: small;
+            padding: 10px 20px;
+            color: #fff;
+        }
+
+        #topBar h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        #navBar {
+            display: flex;
+        }
+
+        #navBar span a {
+            padding: 0 5px;
+            color: white;
+            text-decoration: none;
+            font-size: x-small;
+            cursor: pointer;
+        }
+
+        #navBar span:hover {
+            text-decoration: underline;
+        }
+
+        #description {
+            /* max-width: 700px; */
+            font-size: 18px;
+            text-align: center;
+            line-height: 1.6;
+            background-color: #a5abff
+        }
+
+        #votingArea {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+
+        }
+
+        #voteForm {
+            display: flex;
+        }
+
+        .votingButton {
+            background-color: #131fc7;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .votingButton:hover {
+            background-color: #0f1783;
+            ;
+        }
+
+        .votingButton p {
+            margin: 0;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        #voteChart {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        #map {
+            height: 600px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+</head>
+
+<body>
+    <div id="topBar">
+        <h2>CHEFGANG</h2>
+        <div id="navBar"> <Span><a href="/">Home</a></Span><Span><a href="/map">Map</a></Span><Span><a href="/chart">Chart</a></Span><Span><a href="/btc">BTC</a></Span></div>
+    </div>
+    <div id="description">
+        <h>Portland Metro Area Restaurants. Green: Thai, Red: Mexican, Blue: Italian</h>
+        <div id="map"></div>
+        <div id="foodMap"></div>
+    </div>
+    <script>
+        const url = "http://127.0.0.1:5000/data";
+        d3.json(url).then(function(data0) {
+            // Charts code in here
+            const data = JSON.parse(data0)
+            //interactive food map, with restuarants, category, prices, rating, colored based on toggleable index -->
+            //on hover a card with all data -->
+
+            // Create a map object.
+            let myMap = L.map("map", {
+                center: [45.51, -122.67],
+                zoom: 12
+            });
+
+            // Add a tile layer.
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(myMap);
+
+            // restaurant data
+            // Loop through the restaurants array, and create one marker for each restaurant object.
+            for (var i = 0; i < data.length; i++) {
+
+
+                let geopoint = [data[i].Lat, data[i].Lng]
+                // console.log(geopoint)
+
+                // Conditionals for categories
+                var color = "";
+                if (data[i].category === "Mexican") {
+                    color = "red";
+                } else if (data[i].category === "Italian") {
+                    color = "turquoise";
+                } else if (data[i].category === "Thai") {
+                    color = "green";
+                } else {
+                    color = "yellow";
+                    continue;
+                }
+
+                // Add circles to the map.
+                L.circle(geopoint, {
+                    fillOpacity: 0.75,
+                    color: "black",
+                    fillColor: color,
+                    // Adjust the radius.
+                    radius: 150 //markerSize(data[i].review_count) * 100
+                }).bindPopup(`<h1>${data[i].name}</h1> <hr> <h3>Category: ${data[i].category}</h3> <hr> <h3>Price: ${data[i].price}</h3>`).addTo(myMap);
+            };
+        });
+    </script>
+</body>
+
+</html>
